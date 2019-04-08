@@ -1,0 +1,12 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+discord-py = {editable = true,git = "https://github.com/Rapptz/discord.py.git@rewrite"}
+
+[dev-packages]
+
+[requires]
+python_version = "3.7"

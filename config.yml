@@ -1,0 +1,4 @@
+bot:
+  discord_token: ~ # REQUIRED
+
+defaults:

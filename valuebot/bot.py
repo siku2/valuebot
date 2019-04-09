@@ -34,6 +34,13 @@ class ValueBot(Bot):
         await ctx.send(embed=embed)
 
 
+def add_cogs(bot: ValueBot) -> None:
+    """Add cogs to the bot."""
+    from .points import PointCog
+
+    bot.add_cog(PointCog(bot))
+
+
 async def create_bot(config: Config, **kwargs) -> ValueBot:
     """Create a `ValueBot` instance.
 
@@ -44,4 +51,8 @@ async def create_bot(config: Config, **kwargs) -> ValueBot:
     log.info("connecting to postgres database")
     postgres_connection = await asyncpg.connect(config.postgres_dsn)
 
-    return ValueBot(config, postgres_connection, **kwargs)
+    bot = ValueBot(config, postgres_connection, **kwargs)
+
+    add_cogs(bot)
+
+    return bot

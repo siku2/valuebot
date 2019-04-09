@@ -5,5 +5,5 @@ postgres_dsn: "postgresql://postgres@localhost"
 postgres_points_table: points
 
 points:
-  increase_reaction: "👍"
-  decrease_reaction: "👎"
+  increase_reactions: "👍"
+  decrease_reactions: "👎"

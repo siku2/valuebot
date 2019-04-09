@@ -1,7 +1,7 @@
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Mapping, Optional, TypeVar, Union
+from typing import Any, Dict, List, Mapping, Optional, Set, TypeVar, Union
 
 import yaml
 
@@ -15,8 +15,8 @@ log = logging.getLogger(__name__)
 @dataclass()
 class PointsConfig:
     """Config for points cog."""
-    increase_reaction: List[str]
-    decrease_reaction: List[str]
+    increase_reactions: Set[str]
+    decrease_reactions: Set[str]
 
 
 @dataclass()
@@ -173,8 +173,8 @@ def get_value_map(container: Mapping[T, V], key: T, *, default: U = DEFAULT, msg
 def build_points_config(container: Mapping) -> PointsConfig:
     """Build the points config from a container."""
     return PointsConfig(
-        increase_reaction=get_value_seq(container, "increase_reaction", default=[]),
-        decrease_reaction=get_value_seq(container, "decrease_reaction", default=[]),
+        increase_reactions=set(get_value_seq(container, "increase_reactions", default=[])),
+        decrease_reactions=set(get_value_seq(container, "decrease_reactions", default=[])),
     )
 
 

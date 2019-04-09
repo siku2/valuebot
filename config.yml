@@ -1,4 +1,9 @@
-bot:
-  discord_token: ~ # REQUIRED
+discord_token: ~ # REQUIRED
+command_prefix: "."
 
-defaults:
+postgres_dsn: "postgresql://postgres@localhost"
+postgres_points_table: points
+
+points:
+  increase_reaction: "👍"
+  decrease_reaction: "👎"

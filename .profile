@@ -1,0 +1,1 @@
+export POSTGRES_DSN=${DATABASE_URL}

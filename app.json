@@ -1,0 +1,21 @@
+{
+  "name": "ValueBot",
+  "description": "A discord bot for keeping track of points",
+  "repository": "https://github.com/siku2/valuebot",
+  "logo": "https://github.com/siku2/valuebot/tree/master/assets/logo.png",
+  "keywords": [
+    "python",
+    "discord-bot"
+  ],
+  "addons": [
+    {
+      "plan": "heroku-postgresql"
+    }
+  ],
+  "env": {
+    "DISCORD_TOKEN": {
+      "description": "Discord bot token",
+      "required": true
+    }
+  }
+}

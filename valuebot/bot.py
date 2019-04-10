@@ -54,7 +54,7 @@ class ValueBot(Bot):
         log.info(f"Command \"{ctx.command}\" invoked by {ctx.author}")
 
     async def on_command_error(self, ctx: Context, exception: CommandError) -> None:
-        log.info(f"Command Error in {ctx}: {exception!r}")
+        log.info(f"Command Error in {ctx.command}: {exception!r}")
 
         embed = Embed(description=str(exception), colour=Colour.red())
         await ctx.send(embed=embed)

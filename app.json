@@ -17,5 +17,10 @@
       "description": "Discord bot token",
       "required": true
     }
+  },
+  "formation": {
+    "bot": {
+      "quantity": 1
+    }
   }
 }

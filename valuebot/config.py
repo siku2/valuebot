@@ -29,6 +29,23 @@ class Config:
     postgres_points_table: str
     points: PointsConfig
 
+    def __str__(self) -> str:
+        redacted_keys = {"discord_token", "postgres_dsn"}
+        redacted_str = 5 * "*"
+
+        str_repr = repr(self)
+
+        for redacted_key in redacted_keys:
+            try:
+                value = repr(getattr(self, redacted_key))
+            except AttributeError:
+                pass
+            else:
+                if value:
+                    str_repr = str_repr.replace(value, redacted_str, 1)
+
+        return str_repr
+
 
 def load_env_config(delimiter: str = None) -> Dict[str, Any]:
     """Build a nested config from the environment variables.

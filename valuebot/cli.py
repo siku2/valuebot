@@ -39,6 +39,8 @@ def cli(config: str) -> None:
     log.debug("loading config")
     config = valuebot.load_config(file_location=config)
 
+    log.info(f"loaded config: {config}")
+
     loop = get_loop()
     log.debug("creating bot")
     bot: valuebot.ValueBot = loop.run_until_complete(valuebot.create_bot(config, loop=loop))

@@ -2,7 +2,7 @@
   "name": "ValueBot",
   "description": "A discord bot for keeping track of points",
   "repository": "https://github.com/siku2/valuebot",
-  "logo": "https://github.com/siku2/valuebot/tree/master/assets/logo.png",
+  "logo": "https://github.com/siku2/valuebot/blob/master/assets/logo.png?raw=true",
   "keywords": [
     "python",
     "discord-bot"
@@ -14,7 +14,7 @@
   ],
   "env": {
     "DISCORD_TOKEN": {
-      "description": "Discord bot token",
+      "description": "Your Discord bot token. This can be found on the Discord developers application page.",
       "required": true
     }
   },

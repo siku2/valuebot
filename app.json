@@ -16,6 +16,11 @@
     "DISCORD_TOKEN": {
       "description": "Your Discord bot token. This can be found on the Discord developers application page.",
       "required": true
+    },
+    "COMMAND_PREFIX": {
+      "description": "Command prefix the bot should listen to. This can be any string or the special value @mention to listen to mentions. You can also provide a list.",
+      "value": "@mention",
+      "required": false
     }
   },
   "formation": {

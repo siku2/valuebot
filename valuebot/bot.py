@@ -1,14 +1,34 @@
 import logging
+from typing import List, Set
 
 import asyncpg
 from discord import Colour, Embed
-from discord.ext.commands import Bot, CommandError, Context
+from discord.ext.commands import Bot, CommandError, Context, when_mentioned_or
 
-from .config import Config
+from .config import Config, MENTION_VALUE
 
 __all__ = ["ValueBot", "create_bot"]
 
 log = logging.getLogger(__name__)
+
+
+def create_command_prefix(prefixes: Set[str]):
+    """Create the command prefix argument from the config.
+
+    Args:
+        prefixes: Set of prefixes from the config
+
+    Returns:
+        Either a list of strings or a callable which should be passed
+        to the "command_prefix" of a `discord.Bot`.
+    """
+    sorted_prefixes: List[str] = sorted(prefixes, key=len, reverse=True)
+
+    if MENTION_VALUE in prefixes:
+        sorted_prefixes.remove(MENTION_VALUE)
+        return when_mentioned_or(*sorted_prefixes)
+    else:
+        return sorted_prefixes
 
 
 class ValueBot(Bot):
@@ -23,9 +43,15 @@ class ValueBot(Bot):
     postgres_connection: asyncpg.Connection
 
     def __init__(self, config: Config, postgres_connection: asyncpg.Connection, **kwargs) -> None:
-        super().__init__(config.command_prefix, **kwargs)
+        command_prefix = create_command_prefix(config.command_prefixes)
+        super().__init__(command_prefix=command_prefix, **kwargs)
+
         self.config = config
         self.postgres_connection = postgres_connection
+
+    @classmethod
+    async def on_command(cls, ctx: Context) -> None:
+        log.info(f"Command \"{ctx.command}\" invoked by {ctx.author}")
 
     async def on_command_error(self, ctx: Context, exception: CommandError) -> None:
         log.info(f"Command Error in {ctx}: {exception!r}")

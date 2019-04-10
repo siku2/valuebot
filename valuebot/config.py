@@ -7,9 +7,11 @@ import yaml
 
 from .utils import update_map_recursively
 
-__all__ = ["Config", "load_config"]
+__all__ = ["MENTION_VALUE", "Config", "load_config"]
 
 log = logging.getLogger(__name__)
+
+MENTION_VALUE = "@mention"
 
 
 @dataclass()
@@ -23,7 +25,7 @@ class PointsConfig:
 class Config:
     """Config for valuebot."""
     discord_token: str
-    command_prefix: str
+    command_prefixes: Set[str]
 
     postgres_dsn: str
     postgres_points_table: str
@@ -190,8 +192,8 @@ def get_value_map(container: Mapping[T, V], key: T, *, default: U = DEFAULT, msg
 def build_points_config(container: Mapping) -> PointsConfig:
     """Build the points config from a container."""
     return PointsConfig(
-        increase_reactions=set(get_value_seq(container, "increase_reactions", default=[])),
-        decrease_reactions=set(get_value_seq(container, "decrease_reactions", default=[])),
+        increase_reactions=set(get_value_seq(container, "increase_reaction", default=["👍"])),
+        decrease_reactions=set(get_value_seq(container, "decrease_reaction", default=["👎"])),
     )
 
 
@@ -199,7 +201,7 @@ def build_config(container: Mapping) -> Config:
     """Build the config from a container."""
     return Config(
         discord_token=get_value(container, "discord_token"),
-        command_prefix=get_value(container, "command_prefix", default="."),
+        command_prefixes=set(get_value_seq(container, "command_prefix", default=[MENTION_VALUE])),
         postgres_dsn=get_value(container, "postgres_dsn", default="postgresql://postgres@localhost"),
         postgres_points_table=get_value(container, "postgres_points_table", default="points"),
         points=build_points_config(get_value_map(container, "points", default={})),

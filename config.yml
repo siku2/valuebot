@@ -1,9 +1,9 @@
 discord_token: ~ # REQUIRED
-command_prefix: "."
+command_prefix: "@mention"
 
 postgres_dsn: "postgresql://postgres@localhost"
 postgres_points_table: points
 
 points:
-  increase_reactions: "👍"
-  decrease_reactions: "👎"
+  increase_reaction: "👍"
+  decrease_reaction: "👎"

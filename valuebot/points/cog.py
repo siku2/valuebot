@@ -5,7 +5,7 @@ from typing import Callable, Dict, Optional, Set, cast
 
 import asyncpg
 from discord import Colour, Embed, PartialEmoji, RawReactionActionEvent, TextChannel, User
-from discord.ext.commands import Cog, CommandError, Context, command
+from discord.ext.commands import Cog, CommandError, Context, command, guild_only
 
 from valuebot import ValueBot
 from valuebot.utils import get_message
@@ -53,6 +53,10 @@ class PointCog(Cog, name="Point"):
         await ensure_points_table(self.pg_conn, self.pg_points_table)
 
     async def handle_reaction_change(self, payload: RawReactionActionEvent, added: bool) -> None:
+        if payload.guild_id is None:
+            log.debug(f"ignoring reaction by {payload.user_id} in DMs.")
+            return
+
         emoji: PartialEmoji = payload.emoji
         emoji_name: str = emoji.name
 
@@ -63,11 +67,10 @@ class PointCog(Cog, name="Point"):
         else:
             return
 
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug(
-                f"handling reaction change (added={added}) {emoji_name} "
-                f"[msg={payload.message_id}, channel={payload.channel_id}, guild={payload.guild_id}]"
-            )
+        log.debug(
+            f"handling reaction change (added={added}) {emoji_name} "
+            f"[msg={payload.message_id}, channel={payload.channel_id}, guild={payload.guild_id}]"
+        )
 
         if not added:
             change *= -1
@@ -81,8 +84,7 @@ class PointCog(Cog, name="Point"):
         user_id = message.author.id
         guild_id = message.guild.id if message.guild else None
 
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug(f"Changing points of {message.author} by {change}")
+        log.debug(f"Changing points of {message.author} by {change}")
 
         await user_change_points(self.pg_conn, self.pg_points_table, user_id, guild_id, change)
 
@@ -120,6 +122,7 @@ class PointCog(Cog, name="Point"):
 
         await ctx.send(embed=embed)
 
+    @guild_only()
     @command("points", aliases=["alter"])
     async def points_cmd(self, ctx: Context, user: User = None, *, value: str = None) -> None:
         """Change/Inspect a user's points."""

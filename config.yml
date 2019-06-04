@@ -1,5 +1,6 @@
 discord_token: ~ # REQUIRED
 command_prefix: "@mention"
+use_embeds: yes
 
 postgres_dsn: "postgresql://postgres@localhost"
 postgres_points_table: points

@@ -1,7 +1,7 @@
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Mapping, Optional, Set, TypeVar, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Set, TypeVar, Union
 
 import yaml
 
@@ -20,15 +20,20 @@ class PointsConfig:
     increase_reactions: Set[str]
     decrease_reactions: Set[str]
 
+    points_on_member_join: int
+    points_on_member_leave: int
+
 
 @dataclass()
 class Config:
     """Config for valuebot."""
     discord_token: str
     command_prefixes: Set[str]
+    use_embeds: bool
 
     postgres_dsn: str
     postgres_points_table: str
+
     points: PointsConfig
 
     def __str__(self) -> str:
@@ -106,13 +111,16 @@ DEFAULT = object()
 T = TypeVar("T")
 V = TypeVar("V")
 U = TypeVar("U")
+R = TypeVar("R")
 
 
 class ConfigError(Exception):
     ...
 
 
-def get_value(container: Mapping[T, V], key: T, *, default: U = DEFAULT, msg: str = None) -> Union[V, U]:
+def get_value(container: Mapping[T, V], key: T, *,
+              default: U = DEFAULT,
+              msg: str = None) -> Union[V, U]:
     """Get the value of a key from a container.
 
     Args:
@@ -136,6 +144,52 @@ def get_value(container: Mapping[T, V], key: T, *, default: U = DEFAULT, msg: st
             raise ConfigError(msg or f"\"{key}\" needs to be set!")
         else:
             return default
+
+
+def get_value_conv(container: Mapping[T, V], key: T, converter: Callable[[V], R], *,
+                   default: U = DEFAULT,
+                   msg: str = None) -> Union[R, U]:
+    """Get a value from a container with type conversion.
+
+    Args:
+        container: Container to get value from
+        key: Key to get
+        converter: Converter which converts the value from the container to
+            something else.
+        default: Default value to return if the conversion fails or the value
+            does not exist.
+        msg: Error message to use.
+
+    Raises:
+        ConfigError: If no default is set and the key doesn't exist in the
+            container or the conversion fails.
+
+    Returns:
+        Value of the key in the container converted using the converter
+        or the default value.
+    """
+    val = get_value(container, key, default=default, msg=msg)
+    if val is default:
+        return val
+
+    try:
+        return converter(val)
+    except Exception:
+        if default is DEFAULT:
+            raise ConfigError(msg or f"\"{key}\" needs to be a {converter.__name__}")
+        else:
+            return default
+
+
+def number(val: Any) -> int:
+    return int(val)
+
+
+def boolean(val: Any) -> bool:
+    if not isinstance(val, (int, float, bool)):
+        raise TypeError("Only numbers and booleans are accepted as booleans")
+
+    return bool(val)
 
 
 def get_value_seq(container: Mapping[T, V], key: T, *, default: U = DEFAULT, msg: str = None) -> Union[List[V], U]:
@@ -191,9 +245,15 @@ def get_value_map(container: Mapping[T, V], key: T, *, default: U = DEFAULT, msg
 
 def build_points_config(container: Mapping) -> PointsConfig:
     """Build the points config from a container."""
+    points_on_member_join = get_value_conv(container, "points_on_member_join", number, default=10)
+
     return PointsConfig(
         increase_reactions=set(get_value_seq(container, "increase_reaction", default=["👍"])),
         decrease_reactions=set(get_value_seq(container, "decrease_reaction", default=["👎"])),
+
+        points_on_member_join=points_on_member_join,
+        points_on_member_leave=get_value_conv(container, "points_on_member_leave", number,
+                                              default=points_on_member_join),
     )
 
 
@@ -202,8 +262,11 @@ def build_config(container: Mapping) -> Config:
     return Config(
         discord_token=get_value(container, "discord_token"),
         command_prefixes=set(get_value_seq(container, "command_prefix", default=[MENTION_VALUE])),
+        use_embeds=get_value_conv(container, "use_embeds", boolean, default=True),
+
         postgres_dsn=get_value(container, "postgres_dsn", default="postgresql://postgres@localhost"),
         postgres_points_table=get_value(container, "postgres_points_table", default="points"),
+
         points=build_points_config(get_value_map(container, "points", default={})),
     )
 

@@ -4,13 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-discord = {git = "https://github.com/Rapptz/discord.py.git",ref = "rewrite"}
 asyncpg = "*"
 pyyaml = "*"
 colorlog = "*"
 click = "*"
-
-[dev-packages]
+discord-py = "*"
 
 [requires]
 python_version = "3.7"

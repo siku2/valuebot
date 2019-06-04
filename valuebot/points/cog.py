@@ -118,9 +118,10 @@ class PointCog(Cog, name="Point"):
         else:
             embed.description = f"{user.mention} currently has **{points}** point(s)"
 
-        embed.set_footer(text=f"You paid a point to see the points of {user.name}. You now have {author_points} point(s).")
+        embed.set_footer(
+            text=f"You paid a point to see the points of {user.name}. You now have {author_points} point(s).")
 
-        await ctx.send(embed=embed)
+        await self.bot.send_embed(ctx, embed)
 
     @guild_only()
     @command("points", aliases=["alter"])
@@ -178,5 +179,7 @@ class PointCog(Cog, name="Point"):
 
         log.info(f"changed {user}'s points from {current_value} to {new_value}")
 
-        embed = Embed(description=f"{user.mention} now has **{new_value}** point(s), changed from previous {current_value}", colour=Colour.green())
-        await ctx.send(embed=embed)
+        embed = Embed(
+            description=f"{user.mention} now has **{new_value}** point(s), changed from previous {current_value}",
+            colour=Colour.green())
+        await self.bot.send_embed(ctx, embed)

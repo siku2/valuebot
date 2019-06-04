@@ -8,3 +8,22 @@ postgres_points_table: points
 points:
   increase_reaction: "👍"
   decrease_reaction: "👎"
+
+  roles:
+    - name: "[VB] Negative"
+      points: default
+
+    - name: "[VB] Zero"
+      points: 0
+
+    - name: "[VB] 1-10"
+      points: 1
+
+    - name: "[VB] 11-50"
+      points: 11
+
+    - name: "[VB] 51-100"
+      points: 51
+
+    - name: "[VB] 100+"
+      points: 101

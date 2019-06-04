@@ -21,6 +21,11 @@
       "description": "Command prefix the bot should listen to. This can be any string or the special value @mention to listen to mentions. You can also provide a list.",
       "value": "@mention",
       "required": false
+    },
+    "USE_EMBEDS": {
+      "description": "Whether or not you want to allow the bot to use Embeds to communicate.",
+      "value": "yes",
+      "required": false
     }
   },
   "formation": {

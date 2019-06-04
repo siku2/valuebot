@@ -1,22 +1,121 @@
+import bisect
 import logging
 import os
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Mapping, Optional, Set, TypeVar, Union
+from typing import Any, Callable, Collection, Dict, Iterable, Iterator, List, Mapping, MutableSet, Optional, Set, \
+    TypeVar, Union
 
+import math
 import yaml
 
 from .utils import update_map_recursively
 
-__all__ = ["MENTION_VALUE", "Config", "load_config"]
+__all__ = ["MENTION_VALUE",
+           "RoleConfig", "Roles", "PointsConfig", "Config",
+           "load_config"]
 
 log = logging.getLogger(__name__)
 
 MENTION_VALUE = "@mention"
 
 
+@dataclass(frozen=True)
+class RoleConfig:
+    """Config for a role."""
+    name: str
+    required_points: int
+
+
+class Roles(MutableSet):
+    """Specialised collection for RoleConfig instances."""
+    _role_points: List[int]
+    _roles: Dict[int, RoleConfig]
+
+    def __init__(self, roles: Iterable[RoleConfig] = None) -> None:
+        if roles:
+            self._roles = {role.required_points: role for role in roles}
+        else:
+            self._roles = {}
+
+        self._role_points = list(self._roles.keys())
+        self._role_points.sort()
+
+    def __repr__(self) -> str:
+        role_str = ", ".join(map(repr, self))
+        return f"Roles([{role_str}])"
+
+    def __contains__(self, role: object) -> bool:
+        if not isinstance(role, RoleConfig):
+            return False
+
+        try:
+            existing_role = self._roles[role.required_points]
+        except KeyError:
+            return False
+
+        return existing_role == role
+
+    def __len__(self) -> int:
+        return len(self._role_points)
+
+    def __iter__(self) -> Iterator[RoleConfig]:
+        for points in self._role_points:
+            yield self._roles[points]
+
+    def _bisect_right(self, points: int) -> int:
+        return bisect.bisect_right(self._role_points, points)
+
+    def _index(self, points: int) -> int:
+        index = self._bisect_right(points) - 1
+        try:
+            existing_points = self._role_points[index]
+        except IndexError:
+            pass
+        else:
+            if existing_points == points:
+                return index
+
+        raise ValueError(f"{points} is not in Roles")
+
+    def add(self, role: RoleConfig) -> None:
+        if role not in self:
+            points = role.required_points
+            index = self._bisect_right(points)
+            self._role_points.insert(index, points)
+            self._roles[points] = role
+
+    def discard(self, role: RoleConfig) -> None:
+        points = role.required_points
+        try:
+            self._roles.pop(points)
+        except KeyError:
+            return
+
+        self._role_points.pop(self._index(points))
+
+    def get_role(self, points: int) -> Optional[RoleConfig]:
+        """Get the role which requires less or an equal amount of points.
+
+        Args:
+            points: Points to get role for.
+
+        Returns:
+            Role which
+        """
+        index = self._bisect_right(points) - 1
+        try:
+            existing_points = self._role_points[index]
+        except IndexError:
+            return None
+
+        return self._roles[existing_points]
+
+
 @dataclass()
 class PointsConfig:
     """Config for points cog."""
+    roles: Roles
+
     increase_reactions: Set[str]
     decrease_reactions: Set[str]
 
@@ -243,11 +342,45 @@ def get_value_map(container: Mapping[T, V], key: T, *, default: U = DEFAULT, msg
     raise ConfigError(f"{key} must be an object, not {type(value)}")
 
 
+NEG_INF_POINT_VALUES = {"-inf", "start", "default"}
+
+
+def build_role_config(container: Mapping) -> RoleConfig:
+    """Build a role config from a container."""
+    points = get_value(container, "points")
+
+    if isinstance(points, str) and points.lower() in NEG_INF_POINT_VALUES:
+        points = -math.inf
+
+    if not isinstance(points, (int, float)):
+        raise ConfigError("\"points\" should be a number or \"-inf\"")
+
+    return RoleConfig(
+        name=get_value(container, "name"),
+        required_points=points,
+    )
+
+
+def build_roles(seq: Collection[Mapping]) -> Roles:
+    """Build the Roles collection from a container."""
+    roles = Roles()
+
+    # noinspection PyTypeChecker
+    container = dict(enumerate(seq))
+
+    for i in range(len(seq)):
+        roles.add(build_role_config(get_value_map(container, i)))
+
+    return roles
+
+
 def build_points_config(container: Mapping) -> PointsConfig:
     """Build the points config from a container."""
     points_on_member_join = get_value_conv(container, "points_on_member_join", number, default=10)
 
     return PointsConfig(
+        roles=build_roles(get_value_seq(container, "roles", default=[])),
+
         increase_reactions=set(get_value_seq(container, "increase_reaction", default=["👍"])),
         decrease_reactions=set(get_value_seq(container, "decrease_reaction", default=["👎"])),
 

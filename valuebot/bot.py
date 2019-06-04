@@ -95,7 +95,7 @@ def embed_to_text(embed: Embed, *, max_len: int = DISCORD_MSG_LEN_LIMIT) -> str:
             chars_left -= len(author_name)
             text = author_name + text
 
-    footer = embed.footer
+    footer = embed.footer.text
     if footer:
         footer = f"\n\n*{footer}*"
         if len(footer) <= chars_left:

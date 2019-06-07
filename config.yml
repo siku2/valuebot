@@ -1,15 +1,30 @@
-discord_token: ~ # REQUIRED
+# REQUIRED
+discord_token: ~
+# command prefix to listen to. This can be a list of values.
+# @mention is a special value which means that the bot listens to it being
+# mentioned.
 command_prefix: "@mention"
+# whether the bot should use embeds in its messages.
 use_embeds: yes
 
 postgres_dsn: "postgresql://postgres@localhost"
 postgres_points_table: points
 
+# Points cog config
 points:
+  # reaction emoji which increases a user's points
   increase_reaction: "👍"
+  # reaction emoji which decreases a user's points
   decrease_reaction: "👎"
 
+  # roles which are to be managed and assigned based on the amount of points
+  # a user has. Removing all roles disables this behaviour.
   roles:
+    # name is the name of the role, which will also be the same name used in
+    # Discord.
+    # points is the required amount of points to assign the role. Special value
+    # "default" or "-inf" can be used to denote negative infinity.
+
     - name: "[VB] Negative"
       points: default
 

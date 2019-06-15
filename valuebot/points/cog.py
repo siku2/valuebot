@@ -237,7 +237,13 @@ class PointCog(Cog, name="Point"):
         """
         prev_points = await self.get_points(user_id, guild_id)
         await user_change_points(self.pg_conn, self.pg_points_table, user_id, guild_id, change)
-        self.bot.loop.create_task(self.on_points_change(user_id, guild_id, prev_points, prev_points + change))
+
+        if prev_points:
+            next_points = prev_points + change
+        else:
+            next_points = change
+
+        self.bot.loop.create_task(self.on_points_change(user_id, guild_id, prev_points, next_points))
 
         return prev_points or 0
 
